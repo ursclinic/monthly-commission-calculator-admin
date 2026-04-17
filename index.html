@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>月等效業績抽成計算系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F7F6F2; --surface: #FFFFFF;
+    --border: #E2E0D8; --border-strong: #C8C5BA;
+    --text-primary: #1A1916; --text-secondary: #6B6860; --text-hint: #A8A59E;
+    --accent: #1A5C3A; --accent-light: #EAF3EE; --accent-mid: #2D8A58;
+    --danger: #C0392B; --danger-light: #FDECEA;
+    --warn: #B7600A; --warn-light: #FEF3E7;
+    --info: #1A4E8A; --info-light: #EAF0FB;
+    --radius: 10px; --radius-sm: 6px;
+  }
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg); color: var(--text-primary);
+    min-height: 100vh; padding: 2rem 1rem 4rem;
+  }
+  .container { max-width: 560px; margin: 0 auto; }
+  header { margin-bottom: 2rem; }
+  header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  header p { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem;
+  }
+  .card-title {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-hint); margin-bottom: 1rem;
+  }
+  .fields { display: flex; flex-direction: column; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; }
+  .field input {
+    height: 44px; padding: 0 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 1rem; font-family: inherit;
+    background: var(--surface); color: var(--text-primary);
+    transition: border-color .15s;
+  }
+  .field input:focus { outline: none; border-color: var(--accent-mid); }
+  .field input::placeholder { color: var(--text-hint); }
+  .field input.filled { border-color: var(--accent-mid); background: var(--accent-light); }
+  .result-list { display: flex; flex-direction: column; }
+  .result-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 0; border-bottom: 1px solid var(--border);
+  }
+  .result-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .result-label { font-size: 0.875rem; color: var(--text-secondary); }
+  .result-value { font-size: 0.95rem; font-weight: 500; }
+  .result-row.final { margin-top: 4px; padding-top: 16px; }
+  .result-row.final .result-label { font-size: 1rem; color: var(--text-primary); font-weight: 500; }
+  .result-row.final .result-value { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+  .badge {
+    display: inline-block; font-size: 0.7rem; padding: 2px 9px;
+    border-radius: 100px; font-weight: 700; margin-left: 8px; vertical-align: middle;
+  }
+  .badge-danger { background: var(--danger-light); color: var(--danger); }
+  .badge-warn   { background: var(--warn-light);   color: var(--warn); }
+  .badge-info   { background: var(--info-light);   color: var(--info); }
+  .badge-good   { background: var(--accent-light); color: var(--accent); }
+  .tier-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  thead th {
+    font-weight: 600; color: var(--text-secondary); text-align: left;
+    padding: 8px 10px; border-bottom: 1px solid var(--border-strong); white-space: nowrap;
+  }
+  tbody td { padding: 9px 10px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.active-tier td { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+  .warn-msg { font-size: 0.78rem; color: var(--text-hint); margin-left: 8px; }
+  footer { text-align: center; font-size: 0.75rem; color: var(--text-hint); margin-top: 2rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>月等效業績抽成計算系統</h1>
+    <p>等效月業績 ＝ 本月總業績 ÷ 諮詢點天數 × 應排班天數</p>
+  </header>
+
+  <div class="card">
+    <div class="card-title">輸入資料</div>
+    <div class="fields">
+      <div class="field">
+        <label>本月總業績（元）</label>
+        <input type="number" id="totalSales" min="0" placeholder="請輸入" oninput="onInput(this);calc()">
+      </div>
+      <div class="field">
+        <label>本月諮詢點天數</label>
+        <input type="number" id="consultDays" min="0" max="31" placeholder="請輸入" oninput="onInput(this);calc()">
+      </div>
+      <div class="field">
+        <label>本月法定應排班天數</label>
+        <input type="number" id="scheduledDays" min="1" max="31" placeholder="請輸入" oninput="onInput(this);calc()">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">計算結果</div>
+    <div class="result-list" id="resultDetail"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">抽成級距對照表</div>
+    <div class="tier-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>月等效業績區間</th>
+            <th>抽成比例</th>
+            <th>當月抽成金額範圍</th>
+            <th>職業適合度</th>
+          </tr>
+        </thead>
+        <tbody id="tierBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>僅供內部計算參考使用</footer>
+</div>
+
+<script>
+const TIERS = [
+  { min: 0,       max: 999999,   rate: 0,      label: '0 ~ 999,999',           range: '0',                 title: '建議轉職',  cls: 'badge-danger' },
+  { min: 1000000, max: 1499999,  rate: 0.0025, label: '1,000,000 ~ 1,499,999', range: '2,500 ~ 3,750',     title: '',          cls: '' },
+  { min: 1500000, max: 1999999,  rate: 0.005,  label: '1,500,000 ~ 1,999,999', range: '7,500 ~ 10,000',    title: '普通諮詢師', cls: 'badge-warn' },
+  { min: 2000000, max: 2499999,  rate: 0.0075, label: '2,000,000 ~ 2,499,999', range: '15,000 ~ 18,750',   title: '',          cls: '' },
+  { min: 2500000, max: 2999999,  rate: 0.01,   label: '2,500,000 ~ 2,999,999', range: '25,000 ~ 30,000',   title: '資深諮詢師', cls: 'badge-info' },
+  { min: 3000000, max: 3499999,  rate: 0.02,   label: '3,000,000 ~ 3,499,999', range: '60,000 ~ 70,000',   title: '',          cls: '' },
+  { min: 3500000, max: 3999999,  rate: 0.03,   label: '3,500,000 ~ 3,999,999', range: '105,000 ~ 120,000', title: '',          cls: '' },
+  { min: 4000000, max: 4499999,  rate: 0.04,   label: '4,000,000 ~ 4,499,999', range: '160,000 ~ 180,000', title: '',          cls: '' },
+  { min: 4500000, max: 4999999,  rate: 0.05,   label: '4,500,000 ~ 4,999,999', range: '225,000 ~ 250,000', title: '',          cls: '' },
+  { min: 5000000, max: Infinity, rate: 0.06,   label: '≥ 5,000,000',           range: '≥ 300,000',          title: '卓越表現',  cls: 'badge-good' },
+];
+
+function onInput(el) {
+  el.classList.toggle('filled', el.value !== '');
+}
+
+function calc() {
+  const total       = Number(document.getElementById('totalSales').value)   || 0;
+  const consultDays = Number(document.getElementById('consultDays').value)  || 0;
+  const scheduled   = Number(document.getElementById('scheduledDays').value)|| 0;
+  const ready = consultDays > 0 && scheduled > 0;
+  const equiv = ready ? Math.round(total / consultDays * scheduled) : 0;
+  const tier  = TIERS.find(t => equiv >= t.min && equiv <= t.max) || TIERS[0];
+  const commission = Math.round(total * tier.rate);
+  const titleBadge = tier.title ? `<span class="badge ${tier.cls}">${tier.title}</span>` : '';
+  const warnMsg    = !ready ? `<span class="warn-msg">請填寫天數</span>` : '';
+
+  document.getElementById('resultDetail').innerHTML = `
+    <div class="result-row"><span class="result-label">本月總業績</span><span class="result-value">$${total.toLocaleString()}</span></div>
+    <div class="result-row"><span class="result-label">本月諮詢點天數</span><span class="result-value">${consultDays || '—'}${consultDays ? ' 天' : ''}</span></div>
+    <div class="result-row"><span class="result-label">本月法定應排班天數</span><span class="result-value">${scheduled || '—'}${scheduled ? ' 天' : ''}</span></div>
+    <div class="result-row"><span class="result-label">等效月業績</span><span class="result-value">$${equiv.toLocaleString()}${warnMsg}</span></div>
+    <div class="result-row"><span class="result-label">抽成比例</span><span class="result-value">${(tier.rate * 100).toFixed(2)}%${titleBadge}</span></div>
+    <div class="result-row final"><span class="result-label">本月總抽成</span><span class="result-value">$${commission.toLocaleString()}</span></div>
+  `;
+
+  document.getElementById('tierBody').innerHTML = TIERS.map(t => `
+    <tr class="${t === tier && ready ? 'active-tier' : ''}">
+      <td>${t.label}</td>
+      <td>${(t.rate * 100).toFixed(2)}%</td>
+      <td>${t.range}</td>
+      <td>${t.title ? `<span class="badge ${t.cls}">${t.title}</span>` : ''}</td>
+    </tr>`).join('');
+}
+
+calc();
+</script>
+</body>
+</html>
