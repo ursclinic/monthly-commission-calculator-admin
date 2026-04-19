@@ -3,114 +3,346 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>月等效業績抽成計算系統</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<title>諮詢師抽成試算系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #F7F6F2; --surface: #FFFFFF;
-    --border: #E2E0D8; --border-strong: #C8C5BA;
-    --text-primary: #1A1916; --text-secondary: #6B6860; --text-hint: #A8A59E;
-    --accent: #1A5C3A; --accent-light: #EAF3EE; --accent-mid: #2D8A58;
-    --danger: #C0392B; --danger-light: #FDECEA;
-    --warn: #B7600A; --warn-light: #FEF3E7;
-    --info: #1A4E8A; --info-light: #EAF0FB;
-    --radius: 10px; --radius-sm: 6px;
-  }
-  body {
-    font-family: 'Noto Sans TC', sans-serif;
-    background: var(--bg); color: var(--text-primary);
-    min-height: 100vh; padding: 2rem 1rem 4rem;
-  }
-  .container { max-width: 560px; margin: 0 auto; }
-  header { margin-bottom: 2rem; }
-  header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
-  header p { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; }
-  .card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem;
-  }
-  .card-title {
-    font-size: 0.7rem; font-weight: 700; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--text-hint); margin-bottom: 1rem;
-  }
-  .fields { display: flex; flex-direction: column; gap: 14px; }
-  .field { display: flex; flex-direction: column; gap: 5px; }
-  .field label { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; }
-  .field input {
-    height: 44px; padding: 0 12px;
-    border: 1px solid var(--border); border-radius: var(--radius-sm);
-    font-size: 1rem; font-family: inherit;
-    background: var(--surface); color: var(--text-primary);
-    transition: border-color .15s;
-  }
-  .field input:focus { outline: none; border-color: var(--accent-mid); }
-  .field input::placeholder { color: var(--text-hint); }
-  .field input.filled { border-color: var(--accent-mid); background: var(--accent-light); }
-  .result-list { display: flex; flex-direction: column; }
-  .result-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 11px 0; border-bottom: 1px solid var(--border);
-  }
-  .result-row:last-child { border-bottom: none; padding-bottom: 0; }
-  .result-label { font-size: 0.875rem; color: var(--text-secondary); }
-  .result-value { font-size: 0.95rem; font-weight: 500; }
-  .result-row.final { margin-top: 4px; padding-top: 16px; }
-  .result-row.final .result-label { font-size: 1rem; color: var(--text-primary); font-weight: 500; }
-  .result-row.final .result-value { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
-  .badge {
-    display: inline-block; font-size: 0.7rem; padding: 2px 9px;
-    border-radius: 100px; font-weight: 700; margin-left: 8px; vertical-align: middle;
-  }
-  .badge-danger { background: var(--danger-light); color: var(--danger); }
-  .badge-warn   { background: var(--warn-light);   color: var(--warn); }
-  .badge-info   { background: var(--info-light);   color: var(--info); }
-  .badge-good   { background: var(--accent-light); color: var(--accent); }
-  .tier-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  thead th {
-    font-weight: 600; color: var(--text-secondary); text-align: left;
-    padding: 8px 10px; border-bottom: 1px solid var(--border-strong); white-space: nowrap;
-  }
-  tbody td { padding: 9px 10px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr.active-tier td { background: var(--accent-light); color: var(--accent); font-weight: 600; }
-  .warn-msg { font-size: 0.78rem; color: var(--text-hint); margin-left: 8px; }
-  footer { text-align: center; font-size: 0.75rem; color: var(--text-hint); margin-top: 2rem; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold-bright: #F2D98C;
+  --gold-main:   #E0C97E;
+  --gold-deep:   #C4A85E;
+  --gold-light:  #FAF3E0;
+  --gold-pale:   #FDF8EE;
+  --bg:          #F5F2EB;
+  --surface:     #FDFCF8;
+  --border:      #E4DECE;
+  --border-mid:  #D4CAB8;
+  --dark:        #1A1814;
+  --text:        #2A2620;
+  --text-mid:    #5A5248;
+  --text-muted:  #9A9088;
+  --danger:      #9E3A2F; --danger-bg: #F9EDEB;
+  --warn:        #8A6020; --warn-bg:   #F7EED8;
+  --info:        #2E5078; --info-bg:   #E8EFF8;
+  --success:     #3A6645; --success-bg:#E8F2EB;
+}
+
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.header {
+  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-main) 55%, var(--gold-deep) 100%);
+  padding: 2.25rem 1.5rem 2rem;
+  text-align: center;
+}
+.header .en-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.62rem;
+  letter-spacing: .28em;
+  color: rgba(26,24,20,.55);
+  text-transform: uppercase;
+  margin-bottom: .5rem;
+}
+.header h1 {
+  font-size: 1.3rem;
+  font-weight: 500;
+  letter-spacing: .14em;
+  color: var(--dark);
+  margin-bottom: .3rem;
+}
+.header p {
+  font-size: 0.72rem;
+  color: rgba(26,24,20,.5);
+  letter-spacing: .06em;
+  font-weight: 400;
+}
+.header-divider {
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(26,24,20,.25), transparent);
+  margin: 1rem auto 0;
+}
+
+/* ── Page ── */
+.page { max-width: 900px; margin: 0 auto; padding: 2rem 1rem 5rem; }
+
+/* ── Two-column layout ── */
+.top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+  align-items: start;
+}
+@media (max-width: 600px) {
+  .top-row { grid-template-columns: 1fr; }
+}
+
+/* ── Section label ── */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.1rem;
+}
+.section-label::before {
+  content: '';
+  width: 3px; height: 14px;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold-deep));
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.section-label span {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+}
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+.card.full { margin-bottom: 1.25rem; }
+
+/* ── Fields ── */
+.fields { display: flex; flex-direction: column; gap: 1rem; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label {
+  font-size: 0.73rem;
+  font-weight: 500;
+  letter-spacing: .05em;
+  color: var(--text-mid);
+}
+.input-wrap { position: relative; }
+.input-prefix {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  color: var(--gold-main);
+  pointer-events: none;
+}
+.field input {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px 0 28px;
+  border: 1px solid var(--border-mid);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.field input:focus {
+  outline: none;
+  border-color: var(--gold-main);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(207,174,82,.12);
+}
+.field input.filled {
+  border-color: var(--gold-main);
+  background: var(--gold-pale);
+}
+.field input::placeholder { color: var(--text-muted); font-weight: 300; }
+
+/* ── Button ── */
+.btn-calc {
+  width: 100%;
+  height: 46px;
+  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-main) 50%, var(--gold-deep) 100%);
+  color: var(--dark);
+  border: none;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: .2em;
+  cursor: pointer;
+  margin-top: .75rem;
+  transition: opacity .2s, transform .1s;
+}
+.btn-calc:hover { opacity: .88; }
+.btn-calc:active { transform: scale(.99); }
+
+/* ── Result rows ── */
+.result-list { display: flex; flex-direction: column; }
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.result-row:last-child { border-bottom: none; padding-bottom: 0; }
+.result-row .label { font-size: 0.78rem; color: var(--text-muted); }
+.result-row .value { font-size: 0.88rem; font-weight: 500; color: var(--text); }
+
+/* ── Total box ── */
+.result-total {
+  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-main) 55%, var(--gold-deep) 100%);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-top: .75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(207,174,82,.2);
+}
+.result-total .label {
+  font-size: 0.72rem;
+  letter-spacing: .1em;
+  color: rgba(26,24,20,.6);
+  font-weight: 500;
+}
+.result-total .value {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+/* ── Placeholder result state ── */
+.result-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  color: var(--text-muted);
+  text-align: center;
+  gap: .5rem;
+}
+.result-empty .icon {
+  font-size: 1.5rem;
+  opacity: .3;
+}
+.result-empty p { font-size: 0.78rem; font-weight: 300; letter-spacing: .06em; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  font-size: 0.63rem;
+  padding: 2px 7px;
+  border-radius: 2px;
+  font-weight: 500;
+  letter-spacing: .05em;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.badge-danger  { background: var(--danger-bg);  color: var(--danger); }
+.badge-warn    { background: var(--warn-bg);    color: var(--warn); }
+.badge-info    { background: var(--info-bg);    color: var(--info); }
+.badge-good    { background: var(--success-bg); color: var(--success); }
+
+/* ── Tier table ── */
+.tier-wrap { overflow-x: auto; margin: 0 -1.5rem; }
+table { width: 100%; border-collapse: collapse; font-size: 0.79rem; }
+thead tr { background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-main) 55%, var(--gold-deep) 100%); }
+thead th {
+  font-size: 0.67rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+  color: var(--dark);
+  text-align: left;
+  padding: 10px 14px;
+  white-space: nowrap;
+}
+tbody td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-mid);
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr.active-tier td {
+  background: var(--gold-pale);
+  color: var(--dark);
+  font-weight: 500;
+}
+tbody tr.active-tier td:first-child {
+  box-shadow: inset 3px 0 0 var(--gold-main);
+}
+
+.hint-msg { font-size: 0.7rem; color: var(--text-muted); margin-left: 5px; font-style: italic; }
+
+footer {
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  letter-spacing: .08em;
+  margin-top: 2.5rem;
+}
 </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <h1>月等效業績抽成計算系統</h1>
-    <p>等效月業績 ＝ 本月總業績 ÷ 諮詢點天數 × 應排班天數</p>
-  </header>
 
-  <div class="card">
-    <div class="card-title">輸入資料</div>
-    <div class="fields">
-      <div class="field">
-        <label>本月總業績（元）</label>
-        <input type="number" id="totalSales" min="0" placeholder="請輸入" oninput="onInput(this);calc()">
+<div class="header">
+  <div class="en-label">Yours Aesthetic Medical Clinic</div>
+  <h1>諮詢師抽成試算系統</h1>
+  <p>月等效業績 ＝ 本月總業績 ÷ 諮詢點天數 × 應排班天數</p>
+  <div class="header-divider"></div>
+</div>
+
+<div class="page">
+
+  <!-- 左右並排 -->
+  <div class="top-row">
+
+    <!-- 左：輸入 -->
+    <div class="card">
+      <div class="section-label"><span>輸入資料</span></div>
+      <div class="fields">
+        <div class="field">
+          <label>本月總業績（元）</label>
+          <div class="input-wrap">
+            <span class="input-prefix">$</span>
+            <input type="number" id="totalSales" min="0" placeholder="請輸入金額" oninput="onInput(this); calc()">
+          </div>
+        </div>
+        <div class="field">
+          <label>本月諮詢點天數</label>
+          <div class="input-wrap">
+            <span class="input-prefix" style="font-size:.75rem">天</span>
+            <input type="number" id="consultDays" min="0" max="31" placeholder="請輸入天數" oninput="onInput(this); calc()">
+          </div>
+        </div>
+        <div class="field">
+          <label>本月法定應排班天數</label>
+          <div class="input-wrap">
+            <span class="input-prefix" style="font-size:.75rem">天</span>
+            <input type="number" id="scheduledDays" min="1" max="31" placeholder="請輸入天數" oninput="onInput(this); calc()">
+          </div>
+        </div>
       </div>
-      <div class="field">
-        <label>本月諮詢點天數</label>
-        <input type="number" id="consultDays" min="0" max="31" placeholder="請輸入" oninput="onInput(this);calc()">
-      </div>
-      <div class="field">
-        <label>本月法定應排班天數</label>
-        <input type="number" id="scheduledDays" min="1" max="31" placeholder="請輸入" oninput="onInput(this);calc()">
+      <button class="btn-calc" onclick="calc()">開 始 試 算</button>
+    </div>
+
+    <!-- 右：結果 -->
+    <div class="card" id="resultCard">
+      <div class="section-label"><span>試算結果</span></div>
+      <div id="resultInner">
+        <div class="result-empty">
+          <div class="icon">◈</div>
+          <p>請輸入左側資料<br>結果將自動顯示</p>
+        </div>
       </div>
     </div>
+
   </div>
 
-  <div class="card">
-    <div class="card-title">計算結果</div>
-    <div class="result-list" id="resultDetail"></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">抽成級距對照表</div>
+  <!-- 對照表 -->
+  <div class="card full">
+    <div class="section-label"><span>抽成級距對照表</span></div>
     <div class="tier-wrap">
       <table>
         <thead>
@@ -126,7 +358,7 @@
     </div>
   </div>
 
-  <footer>僅供內部計算參考使用</footer>
+  <footer>悅姿醫美診所 · 僅供內部計算參考使用</footer>
 </div>
 
 <script>
@@ -148,35 +380,61 @@ function onInput(el) {
 }
 
 function calc() {
-  const total       = Number(document.getElementById('totalSales').value)   || 0;
-  const consultDays = Number(document.getElementById('consultDays').value)  || 0;
-  const scheduled   = Number(document.getElementById('scheduledDays').value)|| 0;
+  const total       = Number(document.getElementById('totalSales').value)    || 0;
+  const consultDays = Number(document.getElementById('consultDays').value)   || 0;
+  const scheduled   = Number(document.getElementById('scheduledDays').value) || 0;
+
+  // 若三欄都空白，顯示預設狀態
+  const anyFilled = document.getElementById('totalSales').value !== ''
+                 || document.getElementById('consultDays').value !== ''
+                 || document.getElementById('scheduledDays').value !== '';
+
+  if (!anyFilled) {
+    document.getElementById('resultInner').innerHTML = `
+      <div class="result-empty">
+        <div class="icon">◈</div>
+        <p>請輸入左側資料<br>結果將自動顯示</p>
+      </div>`;
+    renderTierTable(null);
+    return;
+  }
+
   const ready = consultDays > 0 && scheduled > 0;
   const equiv = ready ? Math.round(total / consultDays * scheduled) : 0;
   const tier  = TIERS.find(t => equiv >= t.min && equiv <= t.max) || TIERS[0];
   const commission = Math.round(total * tier.rate);
-  const titleBadge = tier.title ? `<span class="badge ${tier.cls}">${tier.title}</span>` : '';
-  const warnMsg    = !ready ? `<span class="warn-msg">請填寫天數</span>` : '';
 
-  document.getElementById('resultDetail').innerHTML = `
-    <div class="result-row"><span class="result-label">本月總業績</span><span class="result-value">$${total.toLocaleString()}</span></div>
-    <div class="result-row"><span class="result-label">本月諮詢點天數</span><span class="result-value">${consultDays || '—'}${consultDays ? ' 天' : ''}</span></div>
-    <div class="result-row"><span class="result-label">本月法定應排班天數</span><span class="result-value">${scheduled || '—'}${scheduled ? ' 天' : ''}</span></div>
-    <div class="result-row"><span class="result-label">等效月業績</span><span class="result-value">$${equiv.toLocaleString()}${warnMsg}</span></div>
-    <div class="result-row"><span class="result-label">抽成比例</span><span class="result-value">${(tier.rate * 100).toFixed(2)}%${titleBadge}</span></div>
-    <div class="result-row final"><span class="result-label">本月總抽成</span><span class="result-value">$${commission.toLocaleString()}</span></div>
+  const titleBadge = tier.title ? `<span class="badge ${tier.cls}">${tier.title}</span>` : '';
+  const hintMsg    = !ready ? `<span class="hint-msg">請填寫天數</span>` : '';
+
+  document.getElementById('resultInner').innerHTML = `
+    <div class="result-list">
+      <div class="result-row"><span class="label">本月總業績</span><span class="value">$${total.toLocaleString()}</span></div>
+      <div class="result-row"><span class="label">本月諮詢點天數</span><span class="value">${consultDays || '—'}${consultDays ? ' 天' : ''}</span></div>
+      <div class="result-row"><span class="label">本月法定應排班天數</span><span class="value">${scheduled || '—'}${scheduled ? ' 天' : ''}</span></div>
+      <div class="result-row"><span class="label">等效月業績</span><span class="value">${ready ? '$' + equiv.toLocaleString() : '<span style="color:var(--text-muted)">—</span>'}${hintMsg}</span></div>
+      <div class="result-row"><span class="label">抽成比例</span><span class="value">${(tier.rate * 100).toFixed(2)}%${titleBadge}</span></div>
+    </div>
+    <div class="result-total">
+      <span class="label">本月總抽成</span>
+      <span class="value">$${commission.toLocaleString()}</span>
+    </div>
   `;
 
+  renderTierTable(ready ? tier : null);
+}
+
+function renderTierTable(activeTier) {
   document.getElementById('tierBody').innerHTML = TIERS.map(t => `
-    <tr class="${t === tier && ready ? 'active-tier' : ''}">
+    <tr class="${t === activeTier ? 'active-tier' : ''}">
       <td>${t.label}</td>
       <td>${(t.rate * 100).toFixed(2)}%</td>
       <td>${t.range}</td>
-      <td>${t.title ? `<span class="badge ${t.cls}">${t.title}</span>` : ''}</td>
+      <td>${t.title ? `<span class="badge ${t.cls}">${t.title}</span>` : '—'}</td>
     </tr>`).join('');
 }
 
-calc();
+renderTierTable(null);
 </script>
 </body>
 </html>
